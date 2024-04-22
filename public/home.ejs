@@ -1,0 +1,15 @@
+
+<html lang="en">
+<head>
+    
+    <title>Home</title>
+</head>
+<body>
+    <h1>Homr detail</h1>
+    <ul>
+        <% items.forEach(item => { %>
+            <li><a href="/detail?key=<%= item.carModel %>"><%= item.carModel %></a></li>
+        <% }) %>
+    </ul>
+</body>
+</html>
