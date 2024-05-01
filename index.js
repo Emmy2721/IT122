@@ -1,29 +1,42 @@
-import http from 'node:http';
-import fs from 'node:fs';
+import express from 'express';
+import * as data from './data.js';
+import {Book} from './models/book.js';
+
+const app = express();
+app.set('port', process.env.PORT || 3000);
+app.use(express.static('public'));
+app.set('view engine', 'ejs');
 
 
-http.createServer((req,res) => {
-    let path = req.url.toLowerCase();    
-  console.log(path);
-    switch(path) {
-        case '/':
-           fs.readFile("about.html", (err, data) => {
-            if (err) return console.error(err);
-               res.writeHead(200, {'Content-Type': 'text/html'});
-            res.end(data.toString());
-           });
-            break
-      case '/about':
-            res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.end('Home page');
-            break;
-        case '/about':
-            res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.end('About page');
-            break;
-        default:
-            res.writeHead(404, {'Content-Type': 'text/plain'});
-            res.end('Not found');
-            break;
-    }    
-}).listen(process.env.PORT || 3000);
+app.set('view engine', 'ejs');
+
+//app.get('/', (req, res) => {
+ // const allItems = data.getAll();
+//  res.render('home', { items: allItems });
+//});
+
+app.get('/', (_,res) => {
+    Book.find({}).lean().then((books) => {
+        res.render('home', {items: books});
+    }).catch(err => next(err));
+});
+
+app.get('/detail', (req, res) => {
+  const key = req.query.key;
+  const item = data.getItem(key);
+  if (item) {
+    res.render('detail', { item });
+  } else {
+    res.send('Item not found');
+  }
+});
+
+
+app.get( '/about', (req, res) => {
+  console.log(req.url);
+  res.send('This class is about creating amazing web applications');
+});
+
+app.listen(app.get('port'), () => {
+  console.log('Express started'); 
+});
