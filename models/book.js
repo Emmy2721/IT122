@@ -1,14 +1,11 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-
 const connectionString = "mongodb+srv://mahletbirhanu:CNk1EgZDwaATykmq@sccprojects.ahxs6v8.mongodb.net/?retryWrites=true&w=majority&appName=sccprojects"
 
-
-
 mongoose.connect(connectionString, {
-    dbName: 'sccprojects',
-    
+    dbName: 'sample_mflix',
+    // sample_mflix
 });
 
 mongoose.connection.on('open', () => {
@@ -25,4 +22,5 @@ const bookSchema = new Schema({
  inStore: Boolean
 });
 
-export const Book = mongoose.model('Book', bookSchema);
+// Specific special collection name since it's not a plural of Book
+export const Book = mongoose.model('Book', bookSchema, 'it122-books');

@@ -7,8 +7,8 @@
 <body>
     <h1>Home detail</h1>
     <ul>
-        <% items.forEach(item => { %>
-            <li><a href="/detail?key=<%= item.carModel %>"><%= item.carModel %></a></li>
+        <% items.forEach(book => { %>
+            <li><a href="/detail?key=<%= book.title %>"><%= book.title %></a></li>
         <% }) %>
     </ul>
 </body>
