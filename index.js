@@ -87,24 +87,6 @@ app.delete("/api/books/:title", async (req, res) => {
 });
 
 
-    // Let's ensure that .save() is still a valid method to call on the newBook object
-    
-
-    // Utilize this way of calling the add/update method and getting results, but use updateOne()
-    // https://www.mongodb.com/docs/drivers/node/current/usage-examples/updateOne/
-    
-    // Book.updateOne({ title: req.params.title })
-    // .lean()
-    // .then((result) => {
-    //    check result if upsertedCount > 0 for book added and provide response
-    //    check result if modifiedCount > 0 for book updated and provide response
-    //    neither of the above means book not found and provide response
-    // })
-    // .catch((err) => {
-    //   console.log(err);
-    //   res.status(500).send("Database Error occurred");
-    // });
-
 app.put('/api/books/:title', async (req, res) => {
   const filter = { title: req.params.title };
   const updateDoc = req.body;
