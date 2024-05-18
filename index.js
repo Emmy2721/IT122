@@ -6,6 +6,8 @@ const app = express();
 app.set("port", process.env.PORT || 3000);
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+app.use(express.json()); //Used to parse JSON bodies
+
 
 // app.set('view engine', 'ejs'); // Duplicate of line 8 - commenting out (Zak)
 
@@ -42,57 +44,82 @@ app.listen(app.get("port"), () => {
   console.log("Express started");
 });
 
-    app.get('/api/books', (req,res) => {
-        Book.find({}).lean()
-          .then((books) => {
-            res.json(books);
-          }) .catch(err =>  {
-            res.status(500).send('Database Error occurred');
-          })
+// Confirmed it works!
+app.get("/api/books", (req, res) => {
+  Book.find({})
+    .lean()
+    .then((books) => {
+      res.json(books);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Database Error occurred");
     });
-
-app.get('/api/books/:title', (req,res) => {
-    Book.findOne({ title:req.params.title }).lean()
-        .then((book) => {
-           res.json(book);
-        })
-        .catch(err => {
-            res.status(500).send('Database Error occurred');
-        });
 });
 
-app.delete('/api/books/:title', async (req, res) => {
+// Confirmed it works!
+app.get("/api/books/:title", (req, res) => {
+  Book.findOne({ title: req.params.title })
+    .lean()
+    .then((book) => {
+      res.json(book);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Database Error occurred");
+    });
+});
+
+// Confirmed it works!
+app.delete("/api/books/:title", async (req, res) => {
   try {
-    const book = await Book.findOneAndDelete({ title: req.params.title }).lean();
-
+    const book = await Book.findOneAndDelete({
+      title: req.params.title,
+    }).lean();
     if (!book) {
-      return res.status(404).json({ error: 'Book not found' });
+      return res.status(404).json({ error: "Book not found" });
     }
-
-    res.json({ message: 'Book deleted' });
+    res.json({ message: "Book deleted" });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Database error occurred');
+    res.status(500).send("Database error occurred");
   }
 });
 
 
-app.post('/api/books', (req,res) => {
-     try  {
-      const newBook = new Book(req.body);
-      newBook.save()
-        
-        newBook.save();
-       
-           res.status(201).json(newBook);
-         } catch (err) {
-           coonsole.log('Faild', err);
-           res.status(500).send('Database Error occurred');
-       }
-        
-
+    // Let's ensure that .save() is still a valid method to call on the newBook object
     
+
+    // Utilize this way of calling the add/update method and getting results, but use updateOne()
+    // https://www.mongodb.com/docs/drivers/node/current/usage-examples/updateOne/
+    
+    // Book.updateOne({ title: req.params.title })
+    // .lean()
+    // .then((result) => {
+    //    check result if upsertedCount > 0 for book added and provide response
+    //    check result if modifiedCount > 0 for book updated and provide response
+    //    neither of the above means book not found and provide response
+    // })
+    // .catch((err) => {
+    //   console.log(err);
+    //   res.status(500).send("Database Error occurred");
+    // });
+
+app.put('/api/books/:title', async (req, res) => {
+  const filter = { title: req.params.title };
+  const updateDoc = req.body;
+  const options = { upsert: true, runValidators: true };
+  try {
+    const result = await Book.updateOne(filter, updateDoc, options);
+    if (result.upsertedCount > 0) {
+      res.status(201).json({ message: 'Book added' });
+    }  if (result.modifiedCount > 0) {
+      res.json({ message: 'Book updated' });
+    
+      res.status(404).json({ error: 'Book not found' });
+    }
+  } catch (err) {
+    console.error("Failed", err); 
+    res.status(500).send("Database Error occurred");
+  }
 }); 
-  
-  
-  
