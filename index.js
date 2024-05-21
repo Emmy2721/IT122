@@ -6,15 +6,7 @@ const app = express();
 app.set("port", process.env.PORT || 3000);
 app.use(express.static("public"));
 app.set("view engine", "ejs");
-app.use(express.json()); //Used to parse JSON bodies
-
-
-// app.set('view engine', 'ejs'); // Duplicate of line 8 - commenting out (Zak)
-
-//app.get('/', (req, res) => {
-// const allItems = data.getAll();
-//  res.render('home', { items: allItems });
-//});
+app.use(express.json());
 
 app.get("/", (_, res) => {
   Book.find({})
@@ -86,22 +78,24 @@ app.delete("/api/books/:title", async (req, res) => {
   }
 });
 
-
-app.put('/api/books/:title', async (req, res) => {
+app.put("/api/books/:title", async (req, res) => {
   const filter = { title: req.params.title };
   const updateDoc = req.body;
   const options = { upsert: true, runValidators: true };
   try {
-    const result = await Book.updateOne(filter, updateDoc, options);
-    if (result.upsertedCount > 0) {
-      res.status(201).json({ message: 'Book added' });
-    }  if (result.modifiedCount > 0) {
-      res.json({ message: 'Book updated' });
-    
-      res.status(404).json({ error: 'Book not found' });
-    }
-  } catch (err) {
-    console.error("Failed", err); 
-    res.status(500).send("Database Error occurred");
-  }
-}); 
+     const result = await Book.updateOne(filter, updateDoc, options);
+         if (result.upsertedCount > 0) {
+           return res.status(201).json({ message: "Book added" });
+         }
+         if (result.matchedCount === 0) {
+           return res.status(404).json({ error: "Book not found" });
+         }
+         if (result.modifiedCount > 0) {
+           return res.json({ message: "Book updated" });
+         }
+         res.status(200).json({ message: "No changes made to the book" });
+       } catch (err) {
+         console.error("Failed", err);
+         res.status(500).send("Database error occurred");
+       }
+     });
