@@ -10,65 +10,56 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-    const names = ["mike", "susan", "john", "rob"];
+       
+         // create variable with unescaped JS data from server
+        const items = JSON.parse('<%- items %>');
 
-    const Greeting = (props) => {
-        if (props.name) {
-          return <h1>Hello!, {props.name}</h1>;
-        }
-          return <h1>Hello!</h1>;
+        const Greeting = (props) => {
+            if (props.name) {
+                return <h1>Hello!, {props.name}</h1>;
+            }
+            return <h1>Hello!</h1>;
         };
-    const Item = ({ id, name }) => {
-        return <li><a href={`/details/${id}`}>{name}</a></li>;
-    };
+        
+        const Item = ({ id, name }) => {
+            return <li><a href={`/details/${id}`}>{name}</a></li>;
+        };
 
-    const List = ({ items }) => {
-        return (
-     <ul className="item-list">
-         {items.map(item => <Item key={item.id} id={item.id} name={item.name} />)}
+        const List = ({ items }) => {
+            console.dir(items)
+            return (
+                <ul className="item-list">
+                    {items.map(item => <Item key={item._id} id={item._id} name={item.title} />)}
                 </ul>
-        );
-     };
-
-    const divStyle = {
+            );
+        };
+    
+        const divStyle = {
         color: 'gray',
         backgroundImage: 'url(background_image.png)'
     };
 
-    const WelcomeFunctional = (props) => {
-        return <h1>Hello, {props.name}</h1>;
-     };
+        // const listItems = names.map((item) => <li key={item}>{item}</li>);
 
-    class WelcomeClass extends React.Component {
-        render() {
-        return <h1>Hello, {this.props.name}</h1>;
-        }
-    }
-
-    
-
-    const Students = (props) => {
-    const names = ["mike", "smith", "john", "rob"];
-    const listItems = names.map((item) => <li key={item}>{item}</li>);
-        return <ul>{listItems}</ul>
-    };
-
-     const App = (props) => {
-        return (
-         <div>
-            <h1 id="title">React Demo</h1>
-                    <Greeting name={props.name} />
-                    {names.length > 0 && <Students students={names} />}
+        const App = () => {
+            return (
+                <> 
+                    <h1 id="title">React Demo</h1>
+                    <Greeting name={'Students'} />
                     <h2>Items List</h2>
                     <List items={items} />
-                    <HelloWorldComponent />
-        </div> 
-        );
- };
+                </>
+            )
+        }
 
-    const container = document.getElementById('root');
-    const root = ReactDOM.createRoot(container);
-     root.render(<App name='IT' />);
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(
+          <React.StrictMode>
+            <App />
+          </React.StrictMode>
+        );
+
+        // ReactDOM.render(<App />, document.getElementById('root'));
     </script>
   </body>
 </html>
