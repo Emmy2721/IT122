@@ -10,47 +10,96 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-       
-         // create variable with unescaped JS data from server
         const items = JSON.parse('<%- items %>');
 
         const Greeting = (props) => {
-            if (props.name) {
-                return <h1>Hello!, {props.name}</h1>;
-            }
-            return <h1>Hello!</h1>;
-        };
-        
-        const Item = ({ id, name }) => {
-            return <li><a href={`/details/${id}`}>{name}</a></li>;
+            const isLoggedIn = props.isLoggedIn;
+            return (
+                <div>
+                    <h1>Hello!</h1>
+                </div>
+            );
         };
 
-        const List = ({ items }) => {
-            console.dir(items)
+        const Welcome = (props) => {
+            return <h1>Hello, {props.name}</h1>;
+        };
+
+        class WelcomeClass extends React.Component {
+            render() {
+                return <h1>Hello, {this.props.name}</h1>;
+            }
+        }
+
+        const Item = ({ id, name, onSelect }) => {
+            return <li><a href="#" onClick={() => onSelect(id)}>{name}</a></li>;
+        };
+
+        const List = ({ items, onSelect }) => {
             return (
                 <ul className="item-list">
-                    {items.map(item => <Item key={item._id} id={item._id} name={item.title} />)}
+                    {items.map(item => <Item key={item._id} id={item._id} name={item.title} onSelect={onSelect} />)}
                 </ul>
             );
         };
-    
-        const divStyle = {
-        color: 'gray',
-        backgroundImage: 'url(background_image.png)'
-    };
 
-        // const listItems = names.map((item) => <li key={item}>{item}</li>);
+        const Detail = ({ item, onClear, onChange }) => {
+            if (!item) return null;
+
+        return (
+        <div>
+            <h2>Item Details</h2>
+            <form>
+        <div>
+    <label>ID:</label>
+        <input type="text" value={item._id} readOnly />
+        </div>
+        <div>
+            <label>Title:</label>
+            <input type="text" value={item.title} onChange={(e) => onChange(item._id, 'title', e.target.value)} />
+        </div>
+        <button type="button" onClick={onClear}>Clear</button>
+        </form>
+                </div>
+            );
+        };
 
         const App = () => {
+            const [selectedItem, setSelectedItem] = React.useState(null);
+            const [itemList, setItemList] = React.useState(items);
+
+            const handleSelectItem = (id) => {
+                const item = itemList.find(i => i._id === id);
+                setSelectedItem(item);
+            };
+
+            const handleClear = () => {
+                setSelectedItem(null);
+            };
+
+            const handleChange = (id, field, value) => {
+                const updatedItems = itemList.map(item => {
+                    if (item._id === id) {
+                        return { ...item, [field]: value };
+                    }
+                    return item;
+                });
+                setItemList(updatedItems);
+
+                if (selectedItem && selectedItem._id === id) {
+                    setSelectedItem({ ...selectedItem, [field]: value });
+                }
+            };
+
             return (
                 <> 
-                    <h1 id="title">React Demo</h1>
-                    <Greeting name={'Students'} />
+                    <Greeting isLoggedIn={true} />
                     <h2>Items List</h2>
-                    <List items={items} />
+                    <List items={itemList} onSelect={handleSelectItem} />
+                    <Detail item={selectedItem} onClear={handleClear} onChange={handleChange} />
                 </>
-            )
-        }
+            );
+        };
 
         const root = ReactDOM.createRoot(document.getElementById("root"));
         root.render(
@@ -58,8 +107,6 @@
             <App />
           </React.StrictMode>
         );
-
-        // ReactDOM.render(<App />, document.getElementById('root'));
     </script>
-  </body>
+</body>
 </html>
