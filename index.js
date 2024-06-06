@@ -82,13 +82,15 @@ app.put("/api/books/:title", async (req, res) => {
   const filter = { title: req.params.title };
   const updateDoc = req.body;
   const options = { upsert: true, runValidators: true };
+  console.log('filter: ', filter);
+  console.dir(updateDoc);
   try {
      const result = await Book.updateOne(filter, updateDoc, options);
          if (result.upsertedCount > 0) {
            return res.status(201).json({ message: "Book added" });
          }
          if (result.matchedCount === 0) {
-           return res.status(404).json({ error: "Book not found" });
+           return res.status(404).json({ error: "Book not found"});
          }
          if (result.modifiedCount > 0) {
            return res.json({ message: "Book updated" });

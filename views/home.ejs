@@ -10,26 +10,19 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const items = JSON.parse('<%- items %>');
+        const { useState, useEffect } = React;
+
+        const fetchData = async () => {
+            // url
+            const response = await fetch('/api/books');
+            const data = await response.json();
+            console.dir(data);
+            return data;
+        };
 
         const Greeting = (props) => {
-            const isLoggedIn = props.isLoggedIn;
-            return (
-                <div>
-                    <h1>Hello!</h1>
-                </div>
-            );
+            return <h1>Hello!</h1>;
         };
-
-        const Welcome = (props) => {
-            return <h1>Hello, {props.name}</h1>;
-        };
-
-        class WelcomeClass extends React.Component {
-            render() {
-                return <h1>Hello, {this.props.name}</h1>;
-            }
-        }
 
         const Item = ({ id, name, onSelect }) => {
             return <li><a href="#" onClick={() => onSelect(id)}>{name}</a></li>;
@@ -38,41 +31,57 @@
         const List = ({ items, onSelect }) => {
             return (
                 <ul className="item-list">
-                    {items.map(item => <Item key={item._id} id={item._id} name={item.title} onSelect={onSelect} />)}
+     {items.map(item => <Item key={item._id} id={item._id} name={item.title} onSelect={onSelect} />)}
                 </ul>
             );
         };
-
-        const Detail = ({ item, onClear, onChange }) => {
+        const Detail = ({ item, onClear, onChange, onSave, onDelete }) => {
             if (!item) return null;
 
-        return (
-        <div>
-            <h2>Item Details</h2>
-            <form>
-        <div>
-    <label>ID:</label>
-        <input type="text" value={item._id} readOnly />
-        </div>
-        <div>
-            <label>Title:</label>
-            <input type="text" value={item.title} onChange={(e) => onChange(item._id, 'title', e.target.value)} />
-        </div>
-        <button type="button" onClick={onClear}>Clear</button>
-        </form>
+            const handleInputChange = (field, value) => {
+                onChange(item._id, field, value);
+            };
+
+            return (
+                <div>
+                    <h2>Item Details</h2>
+                    <form>
+                        <div>
+                            <label>ID:</label>
+                            <input type="text" value={item._id} readOnly />
+                        </div>
+                        <div>
+                            <label>Title:</label>
+                            
+                       <input type="text" value={item.title} readOnly/>
+                            {
+                                <input type="text" value={item.type} onChange={(e) => handleInputChange('type', e.target.value)} />
+        
+                            }
+                        </div>
+                        <button type="button" onClick={onClear}>Clear</button>
+                        <button type="button" onClick={() => onSave(item)}>Save</button>
+                        <button type="button" onClick={() => onDelete(item.title)}>Delete</button>
+                    </form>
                 </div>
             );
         };
-
         const App = () => {
-            const [selectedItem, setSelectedItem] = React.useState(null);
-            const [itemList, setItemList] = React.useState(items);
+        const [selectedItem, setSelectedItem] = useState(null);
+        const [itemList, setItemList] = useState([]);
 
-            const handleSelectItem = (id) => {
-                const item = itemList.find(i => i._id === id);
-                setSelectedItem(item);
+        useEffect(() => {
+            const loadItems = async () => {
+                const items = await fetchData();
+                setItemList(items);
             };
+            loadItems();
+        }, []);
 
+        const handleSelectItem = (id) => {
+            const item = itemList.find(i => i._id === id);
+            setSelectedItem(item);
+        };
             const handleClear = () => {
                 setSelectedItem(null);
             };
@@ -90,23 +99,57 @@
                     setSelectedItem({ ...selectedItem, [field]: value });
                 }
             };
+            const handleSave = async (item) => {
+                if (item.title) {
+                  
+                    await fetch(`/api/books/${item.title}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(item)
+                    });
+                } else {
+                 
+                    const response = await fetch('/api/books', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(item)
+                    });
+                    const newItem = await response.json();
+                    setItemList([...itemList, newItem]);
+                }
+                setSelectedItem(null);
+                const updatedItems = await fetchData();
+                setItemList(updatedItems);
+            };
+            const handleDelete = async (title) => {
+                            await fetch(`/api/books/${title}`, {
+                                method: 'DELETE'
+                            });
+                            setSelectedItem(null);
+                            const updatedItems = await fetchData();
+                            setItemList(updatedItems);
+                        };
 
-            return (
-                <> 
-                    <Greeting isLoggedIn={true} />
-                    <h2>Items List</h2>
-                    <List items={itemList} onSelect={handleSelectItem} />
-                    <Detail item={selectedItem} onClear={handleClear} onChange={handleChange} />
-                </>
-            );
-        };
+                        return (
+                            <> 
+                                <Greeting isLoggedIn={true} />
+                                <h2>Items List</h2>
+                                <List items={itemList} onSelect={handleSelectItem} />
+                                <Detail item={selectedItem} onClear={handleClear} onChange={handleChange} onSave={handleSave} onDelete={handleDelete} />
+                            </>
+                        );
+                    };
 
-        const root = ReactDOM.createRoot(document.getElementById("root"));
-        root.render(
-          <React.StrictMode>
-            <App />
-          </React.StrictMode>
-        );
-    </script>
-</body>
-</html>
+                    const root = ReactDOM.createRoot(document.getElementById("root"));
+                    root.render(
+                      <React.StrictMode>
+                        <App />
+                      </React.StrictMode>
+                    );
+                </script>
+            </body>
+            </html>
