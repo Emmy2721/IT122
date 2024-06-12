@@ -1,3 +1,4 @@
+<!-- Frontend Code -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,143 +14,152 @@
         const { useState, useEffect } = React;
 
         const fetchData = async () => {
-            // url
             const response = await fetch('/api/books');
             const data = await response.json();
-            console.dir(data);
             return data;
         };
 
-        const Greeting = (props) => {
-            return <h1>Hello!</h1>;
-        };
+        const Greeting = () => <h1>Hello!</h1>;
 
-        const Item = ({ id, name, onSelect }) => {
-            return <li><a href="#" onClick={() => onSelect(id)}>{name}</a></li>;
-        };
+        const Book = ({ id, title, onSelect }) => (
+            <li><a href="#" onClick={() => onSelect(id)}>{title}</a></li>
+        );
 
-        const List = ({ items, onSelect }) => {
-            return (
-                <ul className="item-list">
-     {items.map(item => <Item key={item._id} id={item._id} name={item.title} onSelect={onSelect} />)}
-                </ul>
-            );
-        };
-        const Detail = ({ item, onClear, onChange, onSave, onDelete }) => {
-            if (!item) return null;
+        const BookList = ({ books, onSelect }) => (
+            <ul className="book-list">
+                {books.map(book => (
+                    <Book key={book._id} id={book._id} title={book.title} onSelect={onSelect} />
+                ))}
+            </ul>
+        );
 
+        const BookDetail = ({ book, onClear, onChange, onSave, onDelete, onCreate }) => {
             const handleInputChange = (field, value) => {
-                onChange(item._id, field, value);
+                onChange(book?._id, field, value);
             };
 
             return (
                 <div>
-                    <h2>Item Details</h2>
+                 
                     <form>
                         <div>
                             <label>ID:</label>
-                            <input type="text" value={item._id} readOnly />
+                            <input type="text" value={book?._id || ''} readOnly />
                         </div>
                         <div>
                             <label>Title:</label>
-                            
-                       <input type="text" value={item.title} readOnly/>
-                            {
-                                <input type="text" value={item.type} onChange={(e) => handleInputChange('type', e.target.value)} />
-        
-                            }
+                            <input type="text" value={book?.title || ''} onChange={(e) => handleInputChange('title', e.target.value)} />
+                        </div>
+                        <div>
+                            <label>Type:</label>
+                            <input type="text" value={book?.type || ''} onChange={(e) => handleInputChange('type', e.target.value)} />
                         </div>
                         <button type="button" onClick={onClear}>Clear</button>
-                        <button type="button" onClick={() => onSave(item)}>Save</button>
-                        <button type="button" onClick={() => onDelete(item.title)}>Delete</button>
+                        <button type="button" onClick={() => onSave(book)}>Save</button>
+                        {book?._id && <button type="button" onClick={() => onDelete(book._id)}>Delete</button>}
+                        <button type="button" onClick={onCreate}>Create New</button>
                     </form>
                 </div>
             );
         };
+
         const App = () => {
-        const [selectedItem, setSelectedItem] = useState(null);
-        const [itemList, setItemList] = useState([]);
+            const [selectedBook, setSelectedBook] = useState(null);
+            const [bookList, setBookList] = useState([]);
 
-        useEffect(() => {
-            const loadItems = async () => {
-                const items = await fetchData();
-                setItemList(items);
-            };
-            loadItems();
-        }, []);
+            useEffect(() => {
+                const loadBooks = async () => {
+                    const books = await fetchData();
+                    setBookList(books);
+                };
+                loadBooks();
+            }, []);
 
-        const handleSelectItem = (id) => {
-            const item = itemList.find(i => i._id === id);
-            setSelectedItem(item);
-        };
-            const handleClear = () => {
-                setSelectedItem(null);
+            const handleSelectBook = (id) => {
+                const book = bookList.find(b => b._id === id);
+                setSelectedBook(book);
             };
+
+            const handleClear = () => setSelectedBook({ title: '', type: '' });
 
             const handleChange = (id, field, value) => {
-                const updatedItems = itemList.map(item => {
-                    if (item._id === id) {
-                        return { ...item, [field]: value };
+                if (id) {
+                    const updatedBooks = bookList.map(book => {
+                        if (book._id === id) {
+                            return { ...book, [field]: value };
+                        }
+                        return book;
+                    });
+                    setBookList(updatedBooks);
+
+                    if (selectedBook && selectedBook._id === id) {
+                        setSelectedBook({ ...selectedBook, [field]: value });
                     }
-                    return item;
-                });
-                setItemList(updatedItems);
-
-                if (selectedItem && selectedItem._id === id) {
-                    setSelectedItem({ ...selectedItem, [field]: value });
-                }
-            };
-            const handleSave = async (item) => {
-                if (item.title) {
-                  
-                    await fetch(`/api/books/${item.title}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(item)
-                    });
                 } else {
-                 
-                    const response = await fetch('/api/books', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(item)
-                    });
-                    const newItem = await response.json();
-                    setItemList([...itemList, newItem]);
+                    setSelectedBook({ ...selectedBook, [field]: value });
                 }
-                setSelectedItem(null);
-                const updatedItems = await fetchData();
-                setItemList(updatedItems);
             };
-            const handleDelete = async (title) => {
-                            await fetch(`/api/books/${title}`, {
-                                method: 'DELETE'
-                            });
-                            setSelectedItem(null);
-                            const updatedItems = await fetchData();
-                            setItemList(updatedItems);
-                        };
 
-                        return (
-                            <> 
-                                <Greeting isLoggedIn={true} />
-                                <h2>Items List</h2>
-                                <List items={itemList} onSelect={handleSelectItem} />
-                                <Detail item={selectedItem} onClear={handleClear} onChange={handleChange} onSave={handleSave} onDelete={handleDelete} />
-                            </>
-                        );
-                    };
+            const handleSave = async (book) => {
+                if (book?.title) {
+                    if (book._id) {
+                       
+                        await fetch(`/api/books/${book._id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(book)
+                        });
+                    } else {
+                    
+                        const response = await fetch('/api/books', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(book)
+                        });
+                        const createdBook = await response.json();
+                        setBookList([...bookList, createdBook]);
+                    }
+                   
+                    const updatedBooks = await fetchData();
+                    setBookList(updatedBooks);
+                    setSelectedBook(null);
+                }
+            };
 
-                    const root = ReactDOM.createRoot(document.getElementById("root"));
-                    root.render(
-                      <React.StrictMode>
-                        <App />
-                      </React.StrictMode>
-                    );
-                </script>
-            </body>
-            </html>
+            const handleDelete = async (id) => {
+                await fetch(`/api/books/${id}`, {
+                    method: 'DELETE'
+                });
+         
+                const updatedBooks = await fetchData();
+                setBookList(updatedBooks);
+                setSelectedBook(null);
+            };
+
+            const handleCreate = () => {
+                setSelectedBook(null);
+            };
+
+            return (
+                <> 
+                    <Greeting />
+                    <h2>Books List</h2>
+                    <BookList books={bookList} onSelect={handleSelectBook} />
+                    <BookDetail book={selectedBook} onClear={handleClear} onChange={handleChange} onSave={handleSave} onDelete={handleDelete} onCreate={handleCreate} />
+                </>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(
+            <React.StrictMode>
+                <App />
+            </React.StrictMode>
+        );
+    </script>
+</body>
+</html>
