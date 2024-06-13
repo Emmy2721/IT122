@@ -40,7 +40,7 @@
 
             return (
                 <div>
-                 
+
                     <form>
                         <div>
                             <label>ID:</label>
@@ -103,7 +103,7 @@
             const handleSave = async (book) => {
                 if (book?.title) {
                     if (book._id) {
-                       
+
                         await fetch(`/api/books/${book._id}`, {
                             method: 'PUT',
                             headers: {
@@ -112,7 +112,7 @@
                             body: JSON.stringify(book)
                         });
                     } else {
-                    
+
                         const response = await fetch('/api/books', {
                             method: 'POST',
                             headers: {
@@ -123,7 +123,7 @@
                         const createdBook = await response.json();
                         setBookList([...bookList, createdBook]);
                     }
-                   
+
                     const updatedBooks = await fetchData();
                     setBookList(updatedBooks);
                     setSelectedBook(null);
@@ -134,7 +134,7 @@
                 await fetch(`/api/books/${id}`, {
                     method: 'DELETE'
                 });
-         
+
                 const updatedBooks = await fetchData();
                 setBookList(updatedBooks);
                 setSelectedBook(null);

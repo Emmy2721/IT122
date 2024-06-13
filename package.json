@@ -21,6 +21,10 @@
     "node": "^20.14.0"
   },
   "devDependencies": {
-    "eslint": "^9.4.0"
+    "@eslint/compat": "^1.0.3",
+    "@eslint/js": "^9.4.0",
+    "eslint": "^9.4.0",
+    "eslint-plugin-react": "^7.34.2",
+    "globals": "^15.4.0"
   }
 }
